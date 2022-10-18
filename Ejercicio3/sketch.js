@@ -31,7 +31,7 @@ function realzarContornos(){
 
 function preload() {
   img = loadImage('./img/pintando.jpeg');
-  img2 = loadImage('./img/pintando.jpeg');
+  // img2 = loadImage('./img/pintando.jpeg');
 }
 
 
@@ -39,7 +39,7 @@ function preload() {
 
 
 function setup() {
-  createCanvas(2*img.width, img.height);
+  createCanvas(img.width, img.height);
 
   // pixelDensity(1) para no escalar la densidad de píxeles a la densidad de píxeles del monitor
   pixelDensity(1);

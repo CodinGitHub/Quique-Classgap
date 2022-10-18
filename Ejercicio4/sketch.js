@@ -1,143 +1,92 @@
 let img;
-let img2;
-let imgFilt;
-let matrix;
-let matrixsize;
-let offset;
+let imgBackground;
 
-function detectarContornos(){
-  // Máscara de convolución (Detección de contornos) expresada como matriz
-  matrix = [  [ -1, -1, -1 ],
-  [ -1, 8, -1 ],
-  [ -1, -1, -1 ] ];
-  // Dimensión de la máscara de convolución
-  matrixsize = 3;
-  // Corrección desplazamiento
-  offset = 128;
-}
+// Coordenadas inciales
+const coorXincial = 81;
+const coorYinicial = 81;
 
+// Coordenadas del nuevo origen
+const coorX = 80;
+const coorY = 80;
 
-
-function realzarContornos(){
-  // Máscara de convolución (Realce de contornos) expresada como matriz
-  matrix = [ [ -1, -1, -1 ],
-  [ -1, 9, -1 ],
-  [ -1, -1, -1 ] ];
-  // Dimensión de la máscara de convolución
-  matrixsize = 3;
-  // Corrección desplazamiento
-  offset = 0;  
-}
+//Creo una imagen de fondo
+// let imgfondo = createImage(66, 66);
+// imgfondo.loadPixels();
+// for (let i = 0; i < imgfondo.width; i++) {
+//   for (let j = 0; j < imgfondo.height; j++) {
+//     imgfondo.set(i, j, color(0, 90, 102));
+//   }
+// }
+// imgfondo.updatePixels();
+// image(imgfondo, 0, 0);
 
 function preload() {
+  // Cargamos la imagen
   img = loadImage('./img/pintando.jpeg');
-  img2 = loadImage('./img/pintando.jpeg');
+  imgBackground = loadImage('./img/background.jpeg');
 }
-
-
-
-
 
 function setup() {
-  createCanvas(2*img.width, img.height);
-
+  // Creamos un canvas de medidas (img.width, img.height)
+  createCanvas(img.width, img.height);
   // pixelDensity(1) para no escalar la densidad de píxeles a la densidad de píxeles del monitor
   pixelDensity(1);
-
-  imgFilt = createImage(img.width, img.height, RGB);
-
-
-  // image(img, 0, 0);
-  
 }
-
-
-
-
-
 
 function draw() {
+  // Detectar click sobre la imagen
 
-  // Pintamos la imagen original en el canvas en la posición (0, 0)
+  
+  // Pintamos la imagen en el canvas, en la posición (0, 0) del nuevo sistema de coordenadas
   image(img, 0, 0);
 
-  if (keyIsPressed === true) {
-    if (keyCode === 81) {
-          // SE PRESIONA Q
-          detectarContornos()
-          dibujarContornos()
-          
-    } else if (keyCode === 82) {
-      // NO SE PRESIONA R
-      realzarContornos()
-      dibujarContornos()
-      
-    }else{
-      // image(img2, 0, 0);
-      image(img, 0, 0);
-    }
-  }
-
   
-
-
-  // Pintamos la imagen filtrada en la posición (img.width, 0)
-  // image(img, 0, 0);
   
+  // Solo queremos que se ejecute el código de draw() una vez
+  noLoop();
 }
 
+// function mouseClicked() {
+ 
+// }
 
-function dibujarContornos(){
-  // Siempre debemos llamar a loadPixels() antes de acceder al array de píxeles
-  img.loadPixels();
-  imgFilt.loadPixels();
-
-  // Recorremos todos los píxeles de la imagen
-  for (let y=0; y<img.height; y++) {
-    for (let x=0; x<img.width; x++) {
-      // Cálculo de la convolución espacial del píxel (x,y)
-      let c = convolution(x, y);
-      // Generamos un nuevo píxel en la imagen filtrada
-      let position = (x + y * img.width) * 4;
-      imgFilt.pixels[position] = c;
-      // Al ser una imagen en escala de grises R=G=B
-      imgFilt.pixels[position+2] = imgFilt.pixels[position+1] = imgFilt.pixels[position];
-      // Por defecto, el canal alfa de una imagen creada con createImage() es 0. Lo tenemos que cambiar a
-      255.
-      imgFilt.pixels[position+3] = 255;
-    }
-  }
+let gradosAleatorios;
+let escalaAleatoria;
+let coorXAleatoria;
+let coorYAleatoria;
 
 
+function mousePressed() {
 
-  // Si modificamos los valores del array de píxeles, siempre debemos actualizar sus valores.
-  // img.updatePixels();
-  imgFilt.updatePixels();
-  image(imgFilt, 0, 0); 
+  gradosAleatorios = random(-180);
+  escalaAleatoria = random();
+  coorXAleatoria = random(200)
+  coorYAleatoria = random(200)
+
+  console.log('raton presionado')
+  // image(imgBackground, 0, 0);
+  // background(150, 250, 150);
+  // fill(100, 100, 250);
+  // Movemos el sistema de coordenadas
+  
+  createCanvas(img.width*1.5, img.height*1.5);
+
+  rotate(gradosAleatorios);
+  scale(escalaAleatoria);
+  translate(coorXAleatoria, coorYAleatoria);
+  
+  // Pintamos la imagen en el canvas, en la posición (0, 0) del nuevo sistema de coordenadas
+  image(img, 0, 0);
+ 
+ 
 }
 
-// Función que calcula la convolución espacial
-function convolution(x, y) {
-  let result = 0.0;
-  const half = Math.floor(matrixsize / 2);
-  // Recorremos la matriz de convolución
-  for (let i = 0; i < matrixsize; i++) {
-    for (let j = 0; j < matrixsize; j++) {
-      // Cálculo del píxel sobre el que estamos trabajando
-      const xloc = x + i - half;
-      const yloc = y + j - half;
-      let loc = (xloc + img.width * yloc) * 4;
-      // Nos aseguramos de que tomamos un píxel dentro del rango válido
-      loc = constrain(loc, 0, img.pixels.length-1);
-      // Cálculo de la operación convolución
-      // Dado que se trata de una imagen en escala de grises, solo consultamos el valor del canal red (r)
-      result += (img.pixels[loc] * matrix[i][j]);
-    }
-  }
-  // Aplicamos el desplazamiento
-  result += offset;
-  // Nos aseguramos de que el nivel de gris está en el rango (0, 255)
-  result = constrain(result, 0, 255);
-  // Devolvemos el nivel de gris
-  return result;
+function mouseReleased() {
+  console.log('raton soltado')
+  image(imgBackground, 0, 0);
+  translate(-coorXAleatoria, -coorYAleatoria);
+  rotate(-gradosAleatorios);
+  scale(1/escalaAleatoria)
+
+  image(img, 0, 0);
 }
